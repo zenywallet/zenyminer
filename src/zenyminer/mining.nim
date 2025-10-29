@@ -19,8 +19,21 @@ import zenyjs/config
 import zenycore/rpc
 import zenycore/opcodes
 
+networks:
+  BitZeny_mainnet:
+    pubKeyPrefix: 81'u8
+    scriptPrefix: 5'u8
+    wif: 128'u8
+    bech32: "sz"
+
+  BitZeny_testnet:
+    pubKeyPrefix: 111'u8
+    scriptPrefix: 196'u8
+    wif: 239'u8
+    bech32: "tz"
+
 const MINER_THREAD_NUM = 4
-const NETWORK_ID = NetworkId.BitZeny_testnet
+const NETWORK_ID = BitZeny_testnet
 const RPC_URL = "http://127.0.0.1:19252/"
 const RPC_USER_PASSWORD = "rpcuser:rpcpassword"
 const PAYOUT_ADDRESS = "your payout address"
