@@ -220,7 +220,7 @@ proc main() =
         blk.txn = VarInt(1 + txCount)
         blk.txs.add(txo)
 
-        var txdatas: Array[Array[byte]]
+        var txdatas: Array[byte]
         for t in transactions:
           txdatas.add(t["data"].getStr.Hex.toBytes)
 
