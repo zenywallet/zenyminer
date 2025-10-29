@@ -5,10 +5,19 @@ import std/times
 import std/posix
 import std/sequtils
 import std/strformat
-import bytes, blocks, tx, address, script
-import yespower, seed, rpc
-import opcodes
-import utils
+import zenyjs/bytes
+import zenyjs/arraylib
+import zenyjs/blocks
+import zenyjs/tx
+import zenyjs/tx_types
+import zenyjs/address
+import zenyjs/script
+import zenyjs/yespower
+import zenyjs/seed
+import zenyjs/utils
+import zenyjs/config
+import zenycore/rpc
+import zenycore/opcodes
 
 const MINER_THREAD_NUM = 4
 const NETWORK_ID = NetworkId.BitZeny_testnet
