@@ -3,7 +3,6 @@
 import std/os
 import std/times
 import std/posix
-import std/sequtils
 import std/strformat
 import std/json
 import zenyjs/bytes
@@ -127,8 +126,8 @@ proc main() =
     minerParams[][i].abort = false
     createThread(minerThreads[i], miner, addr minerParams[][i])
 
-  var rawBlock: seq[byte]
-  var target: seq[byte]
+  var rawBlock: Array[byte]
+  var target: Array[byte]
 
   while not abort:
     var message = messageChannel[].recv()
@@ -172,7 +171,7 @@ proc main() =
         target = blockTmpl["target"].getStr.Hex.toHash.toBytes
         var height = blockTmpl["height"].getInt.uint32
         var coinBaseValue = blockTmpl["coinbasevalue"].getBiggestInt.uint64
-        var sig = concat(@[byte 3'u8], height.toBytes[0..2])
+        var sig = (@^[byte 3'u8], height.toBytes[0..2]).toBytes
         var witnessFlag = false
         for t in transactions:
           if t["txid"].getStr != t["hash"].getStr and t["data"].getStr[8..11].Hex.toBytes.toUint16BE == 1'u16:
@@ -181,13 +180,13 @@ proc main() =
         var tx = new Tx
         tx.ver = 1'i32
         tx.flags = Flags(0'u8)
-        tx.ins = @[TxIn (tx: Hash(pad(32)), n: 0xffffffff'u32, sig: Sig(sig), sequence: 0xffffffff'u32)]
+        tx.ins = @^[TxIn (tx: Hash(pad(32)), n: 0xffffffff'u32, sig: Sig(sig), sequence: 0xffffffff'u32)]
         if witnessFlag:
-          var witnessCommitmentScript: seq[byte]
+          var witnessCommitmentScript: Array[byte]
           if blockTmpl.hasKey("default_witness_commitment"):
             witnessCommitmentScript = blockTmpl["default_witness_commitment"].getStr.Hex.toBytes
           else:
-            var txHashes: seq[seq[byte]]
+            var txHashes: Array[Array[byte]]
             txHashes.add(witnessReserved)
             for t in transactions:
               txHashes.add(t["hash"].getStr.Hex.toHash.toBytes)
@@ -195,15 +194,15 @@ proc main() =
             let witnessCommitmentHash = sha256d((witnessRootHash, witnessReserved).toBytes).toBytes
             let witnessCommitment = (WitnessCommitmentHeader, witnessCommitmentHash).toBytes
             witnessCommitmentScript = (OP_RETURN, PushData(witnessCommitment)).toBytes
-          tx.outs = @[TxOut (value: 0'u64, script: Script(witnessCommitmentScript)),
+          tx.outs = @^[TxOut (value: 0'u64, script: Script(witnessCommitmentScript)),
                     (value: coinBaseValue, script: Script(myAddressScript))]
         else:
-          tx.outs = @[TxOut (value: coinBaseValue, script: Script(myAddressScript))]
+          tx.outs = @^[TxOut (value: coinBaseValue, script: Script(myAddressScript))]
         tx.locktime = 0
         var txid = tx.txid
 
-        var txids: seq[seq[byte]]
-        txids.add(cast[seq[byte]](txid))
+        var txids: Array[Array[byte]]
+        txids.add(cast[Array[byte]](txid))
         for t in transactions:
           txids.add(t["txid"].getStr.Hex.toHash.toBytes)
 
@@ -220,7 +219,7 @@ proc main() =
         blk.txn = VarInt(1 + txCount)
         blk.txs.add(tx)
 
-        var txdatas: seq[seq[byte]]
+        var txdatas: Array[Array[byte]]
         for t in transactions:
           txdatas.add(t["data"].getStr.Hex.toBytes)
 
