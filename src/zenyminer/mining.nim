@@ -5,6 +5,7 @@ import std/times
 import std/posix
 import std/sequtils
 import std/strformat
+import std/json
 import zenyjs/bytes
 import zenyjs/arraylib
 import zenyjs/blocks
