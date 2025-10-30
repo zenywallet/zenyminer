@@ -88,13 +88,13 @@ proc updateBlockInvoker() {.thread.} =
     messageChannel[].send(msg)
     sleep(1000)
 
-proc doAbort() =
+proc doAbort*() =
   abort = true
   var msg = new Message
   msg.cmd = MessageCmd.None
   messageChannel[].send(msg)
 
-proc main() =
+proc main*() =
   minerParams = cast[ptr UncheckedArray[MinerParam]](allocShared0(sizeof(MinerParam) * MINER_THREAD_NUM))
   minerDatas = cast[ptr UncheckedArray[MinerData]](allocShared0(sizeof(MinerData) * MINER_THREAD_NUM * 2))
   messageChannel = cast[ptr Channel[Message]](allocShared0(sizeof(Channel[Message])))
