@@ -21,8 +21,8 @@ import emsdkenv
 task webminer, "Build web miner":
   exec "nim js -d:release -o:src/zenyminer/web_miner_loader.js src/zenyminer/web_miner_loader.nim"
   exec "nim js -d:release -d:nodejs -o:src/zenyminer/web_miner_externs.js src/zenyminer/web_miner_externs.nim"
-  emsdkEnv "nim c -d:release -d:emscripten -o:public/miner.js_tmp --gc:orc src/zenyminer/web_miner.nim"
-  emsdkEnv "nim c -d:release -d:emscripten -d:ENABLE_SIMD128 -o:public/miner-simd128.js_tmp --gc:orc src/zenyminer/web_miner.nim"
+  emsdkEnv "nim c -d:release -d:emscripten -o:public/miner.js_tmp --mm:orc src/zenyminer/web_miner.nim"
+  emsdkEnv "nim c -d:release -d:emscripten -d:ENABLE_SIMD128 -o:public/miner-simd128.js_tmp --mm:orc src/zenyminer/web_miner.nim"
   exec "nim c -r src/zenyminer/web_miner_patch.nim"
   exec "rm src/zenyminer/web_miner_patch"
   exec """
