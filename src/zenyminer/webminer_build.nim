@@ -23,8 +23,8 @@ template withDir(dir: string; body: untyped): untyped =
 withDir srcDir:
   exec "nim js -d:release -o:webminer_loader.js webminer_loader.nim"
   exec "nim js -d:release -d:nodejs -o:webminer_externs.js webminer_externs.nim"
-  emsdkEnv "nim c -d:release -d:emscripten -o:public/miner.js_tmp --mm:orc webminer.nim"
-  emsdkEnv "nim c -d:release -d:emscripten -d:ENABLE_SIMD128 -o:public/miner-simd128.js_tmp --mm:orc webminer.nim"
+  emsdkEnv "nim c -d:release -d:emscripten -o:miner.js_tmp --mm:orc webminer.nim"
+  emsdkEnv "nim c -d:release -d:emscripten -d:ENABLE_SIMD128 -o:miner-simd128.js_tmp --mm:orc webminer.nim"
   exec "nim c -r webminer_patch.nim"
   exec "rm webminer_patch"
   exec """
@@ -34,10 +34,10 @@ else
   closure_compiler="java -jar $(ls closure-compiler-*.jar | sort -r | head -n1)"
 fi
 echo "use $closure_compiler"
-$closure_compiler --compilation_level ADVANCED --jscomp_off=checkVars --jscomp_off=checkTypes --jscomp_off=uselessCode --js_output_file=public/miner.js --externs webminer_externs.js public/miner.js_tmp 2>&1 | cut -c 1-240
-$closure_compiler --compilation_level ADVANCED --jscomp_off=checkVars --jscomp_off=checkTypes --jscomp_off=uselessCode --js_output_file=public/miner-simd128.js --externs webminer_externs.js public/miner-simd128.js_tmp 2>&1 | cut -c 1-240
+$closure_compiler --compilation_level ADVANCED --jscomp_off=checkVars --jscomp_off=checkTypes --jscomp_off=uselessCode --js_output_file=miner.js --externs webminer_externs.js miner.js_tmp 2>&1 | cut -c 1-240
+$closure_compiler --compilation_level ADVANCED --jscomp_off=checkVars --jscomp_off=checkTypes --jscomp_off=uselessCode --js_output_file=miner-simd128.js --externs webminer_externs.js miner-simd128.js_tmp 2>&1 | cut -c 1-240
 """
-  exec "rm public/miner-simd128.js_tmp"
-  exec "rm public/miner.js_tmp"
+  exec "rm miner-simd128.js_tmp"
+  exec "rm miner.js_tmp"
   exec "rm webminer_externs.js"
   exec "rm webminer_loader.js"

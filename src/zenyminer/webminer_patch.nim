@@ -4,8 +4,8 @@ import std/os
 import std/strutils
 import regex
 
-const minerFileTmp1 = currentSourcePath().parentDir() / "../public/miner.js_tmp"
-const minerFileTmp2 = currentSourcePath().parentDir() / "../public/miner-simd128.js_tmp"
+const minerFileTmp1 = currentSourcePath().parentDir() / "miner.js_tmp"
+const minerFileTmp2 = currentSourcePath().parentDir() / "miner-simd128.js_tmp"
 
 proc patch(file: string) =
   var s = readFile(file)
