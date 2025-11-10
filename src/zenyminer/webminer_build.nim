@@ -7,6 +7,45 @@ import emsdkenv
 
 const srcDir = currentSourcePath().parentDir()
 
+const externs = """
+var webminer_externs = {
+  minerMod: {
+    onRuntimeInitialized: function() {},
+    preRun: [],
+    postRun: [],
+    print: function() {},
+    printErr: function() {},
+    setStatus: function() {},
+    getExceptionMessage: function() {}
+  },
+  cwrap: function() {},
+  ccall: function() {},
+  _malloc: function() {},
+  _free: function() {},
+  stackSave: function() {},
+  stackAlloc: function() {},
+  stackRestore: function() {},
+  UTF8ToString: function() {},
+  HEAPU8: {},
+  HEAPU32: {},
+  buffer: 0
+};
+
+var MinerData = {
+  header: {},
+  target: {},
+  nid: 0
+};
+
+var FindData = {
+  cmd: {},
+  data: {
+    header: {},
+    nid: {}
+  }
+};
+"""
+
 proc errCheck(errCode: int) =
   if errCode != 0:
     raise
@@ -31,7 +70,7 @@ proc patch(file: string) =
 
 withDir srcDir:
   exec "nim js -d:release -o:webminer_loader.js webminer_loader.nim"
-  exec "nim js -d:release -d:nodejs -o:webminer_externs.js webminer_externs.nim"
+  writeFile("webminer_externs.js", externs)
   emsdkEnv "nim c -d:release -d:emscripten -o:miner.js_tmp --mm:orc webminer.nim"
   emsdkEnv "nim c -d:release -d:emscripten -d:ENABLE_SIMD128 -o:miner-simd128.js_tmp --mm:orc webminer.nim"
   patch("miner.js_tmp")
