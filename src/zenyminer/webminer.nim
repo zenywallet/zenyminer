@@ -7,7 +7,7 @@ import std/os
 import std/times
 
 const srcPath = currentSourcePath().parentDir()
-{.passL: "--extern-pre-js " & srcPath / "web_miner_loader.js".}
+{.passL: "--extern-pre-js " & srcPath / "webminer_loader.js".}
 
 {.emit: """
 #include <emscripten.h>

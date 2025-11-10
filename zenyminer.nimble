@@ -16,6 +16,6 @@ requires "zenycore"
 requires "zenyjs"
 
 
-task webminer, "Build web miner":
-  exec "nim c -r src/zenyminer/web_miner_build.nim"
-  exec "rm src/zenyminer/web_miner_build"
+task webminer, "Build webminer":
+  exec "nim c -r src/zenyminer/webminer_build.nim"
+  exec "rm src/zenyminer/webminer_build"
