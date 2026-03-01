@@ -79,7 +79,7 @@ proc miner(param: ptr MinerParam) {.thread.} =
           break
       messageChannel[].send(Message(cmd: MessageCmd.FindBlock, header: data[].header,
                                     blockId: data[].blockId, blockHash: yhash.toBytes.BlockHash))
-    inc(cast[var uint32](addr data[].header.nonce))
+    inc(data[].header.nonce)
 
 proc updateBlockInvoker() {.thread.} =
   while not abort:
