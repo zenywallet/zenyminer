@@ -172,7 +172,7 @@ proc main*() =
           target = blockTmpl["target"].getStr.Hex.toHash.toBytes
           var height = blockTmpl["height"].getInt.uint32
           var coinBaseValue = blockTmpl["coinbasevalue"].getBiggestInt.uint64
-          var sig = (@^[byte 3'u8], height.toBytes[0..2]).toBytes
+          var sig = bip34Sig(height)
           var witnessFlag = false
           for t in transactions:
             if t["txid"].getStr != t["hash"].getStr and t["data"].getStr[8..11].Hex.toBytes.toUint16BE == 1'u16:
