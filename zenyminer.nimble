@@ -5,7 +5,7 @@ author        = "zenywallet"
 description   = "A native miner and web miner for BitZeny"
 license       = "MIT"
 srcDir        = "src"
-installExt    = @["nim"]
+installExt    = @["nim", "js"]
 bin           = @["zenyminer"]
 
 
