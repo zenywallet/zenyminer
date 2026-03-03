@@ -191,15 +191,15 @@ var pageUnload = false
 var stream = new Deoxy
 
 import std/base64
-macro constMinerScriptNames(): untyped =
+macro constMinerScripts(): untyped =
   var scriptNames = ["miner.js", "miner-simd128.js"]
   var bracket = nnkBracket.newTree()
   for name in scriptNames:
     var srcBin = encode(staticRead(currentSourcePath().parentDir() / name))
     bracket.add(newLit("data:application/javascript;base64," & srcBin))
-  newConstStmt(newIdentNode("minerScriptNames"), bracket)
+  newConstStmt(newIdentNode("minerScripts"), bracket)
 
-constMinerScriptNames()
+constMinerScripts()
 
 try:
   cpuMaxCount = window.navigator.hardwareConcurrency.to(int)
@@ -225,7 +225,7 @@ proc changeMiningWorker(num: int) =
       discard jsDelete(miningStatus[id])
       worker.terminate()
     while req.to(int) > miningWorkers.length.to(int):
-      let worker = newWorker(cstring(minerScriptNames[optimizedId]))
+      let worker = newWorker(cstring(minerScripts[optimizedId]))
       worker.onerror = proc(e: JsObject) = console.dir(e)
       worker.id = miningWorkers.length
       worker.readyFlag = false
