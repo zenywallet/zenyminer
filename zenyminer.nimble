@@ -20,5 +20,10 @@ task webminer, "Build webminer":
   exec "nim c -r --forceBuild src/zenyminer/webminer_build.nim"
   exec "rm src/zenyminer/webminer_build"
 
+task webmining, "Build webmining":
+  exec "nim c -r --forceBuild src/zenyminer/webmining_build.nim"
+  exec "rm src/zenyminer/webmining_build"
+
 before build:
   webminerTask()
+  webminingTask()
