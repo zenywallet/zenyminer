@@ -2,20 +2,20 @@
 
 import zenyjs
 import jsffi except `.=`
-import jslib
+import zenyjs/jslib
 import asyncjs
-import arraylib
+import zenyjs/arraylib
 import json
 import strformat
 import times
-import deoxy
+import zenyjs/deoxy
 
 import os, macros
 
 const WEBSOCKET_PROTOCOL = "deoxy-0.1"
 const WEBSOCKET_ENTRY_URL = "wss://localhost:8000/ws"
 
-import address
+import zenyjs/address
 include karax / prelude
 
 
@@ -195,7 +195,7 @@ macro constMinerScriptNames(): untyped =
   var scriptNames = ["miner.js", "miner-simd128.js"]
   var bracket = nnkBracket.newTree()
   for name in scriptNames:
-    var srcBin = encode(staticRead(currentSourcePath().parentDir() / "../../public" / name))
+    var srcBin = encode(staticRead(currentSourcePath().parentDir() / name))
     bracket.add(newLit("data:application/javascript;base64," & srcBin))
   newConstStmt(newIdentNode("minerScriptNames"), bracket)
 
