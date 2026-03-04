@@ -197,9 +197,9 @@ macro constMinerScripts(): untyped =
   for name in scriptNames:
     var srcBin = encode(staticRead(currentSourcePath().parentDir() / name))
     bracket.add(newLit("data:application/javascript;base64," & srcBin))
-  newConstStmt(newIdentNode("minerScripts"), bracket)
+  bracket
 
-constMinerScripts()
+const minerScripts = constMinerScripts()
 
 try:
   cpuMaxCount = window.navigator.hardwareConcurrency.to(int)
