@@ -501,80 +501,79 @@ appInst.redraw()
 window.addEventListener("beforeunload", proc() = pageUnload = true)
 
 zenyjs.ready:
-  proc onRecv(data: Uint8Array) =
-    let d = parseJson($data.uint8ArrayToStr())
-    let recvType = d["type"].getStr
-    let recvData = d["data"]
+  stream.connect(WEBSOCKET_ENTRY_URL, WEBSOCKET_PROTOCOL):
+    onOpen:
+      connectionError = false
+      clearNotify("connect")
 
-    if recvType == "mining":
-      while 0 < miningPendingFinds.length.to(int):
-        let findData = miningPendingFinds.shift().to(Uint8Array)
-        let retSend = stream.send(findData)
-        if not retSend:
-          miningPendingFinds.push(findData)
-          break
-      miningData = JSON.parse(cstring($recvData))
-      postMiningData()
+    onReady:
+      cmdSend """{"cmd":"status-on"}"""
+      cmdSend """{"cmd":"noralist"}"""
+      if miningActive:
+        cmdSend fmtj"""{"cmd":"addr-on","data":{"nid":<activeNid>,"addr":"<miningAddress>"}}"""
+        cmdSend fmtj"""{"cmd":"mining-on","data":{"nid":<activeNid>,"addr":"<miningAddress>"}}"""
 
-    elif recvType == "noralist":
-      noraList = @[]
-      for n in recvData:
-        noraList.add(n.getStr)
-      appInst.redraw()
+    onRecv:
+      let d = parseJson($data.uint8ArrayToStr())
+      let recvType = d["type"].getStr
+      let recvData = d["data"]
 
-    elif recvType == "status":
-      let nid = recvData["nid"].getInt
-      let nidStr = $nid
-      statusDatas[nidStr] = recvData
+      if recvType == "mining":
+        while 0 < miningPendingFinds.length.to(int):
+          let findData = miningPendingFinds.shift().to(Uint8Array)
+          let retSend = stream.send(findData)
+          if not retSend:
+            miningPendingFinds.push(findData)
+            break
+        miningData = JSON.parse(cstring($recvData))
+        postMiningData()
 
-      let height = recvData["height"].getInt
-      let lastHeight = recvData["lastHeight"].getInt
-      if height == lastHeight:
-        cmdSend fmtj"""{"cmd":"block","data":{"nid":<nid>,"height":<height>,"limit":1}}"""
-
-    elif recvType == "block":
-      let nid = recvData["nid"].getInt
-      let nidStr = $nid
-      blockDatas[nidStr] = recvData
-      if activeNid == nid:
+      elif recvType == "noralist":
+        noraList = @[]
+        for n in recvData:
+          noraList.add(n.getStr)
         appInst.redraw()
 
-    elif recvType == "addr":
-      let nid = recvData["nid"].getInt
-      let nidStr = $nid
-      addressDatas[nidStr] = recvData
-      appInst.redraw()
-      cmdSend fmtj"""{"cmd":"addrlog","data":{"nid":<nid>,"addr":"<miningAddress>","rev":1}}"""
+      elif recvType == "status":
+        let nid = recvData["nid"].getInt
+        let nidStr = $nid
+        statusDatas[nidStr] = recvData
 
-    elif recvType == "addrlog":
-      let nid = recvData["nid"].getInt
-      let nidStr = $nid
-      addrlogDatas[nidStr] = recvData
-      appInst.redraw()
+        let height = recvData["height"].getInt
+        let lastHeight = recvData["lastHeight"].getInt
+        if height == lastHeight:
+          cmdSend fmtj"""{"cmd":"block","data":{"nid":<nid>,"height":<height>,"limit":1}}"""
 
-  proc onReady() =
-    cmdSend """{"cmd":"status-on"}"""
-    cmdSend """{"cmd":"noralist"}"""
-    if miningActive:
-      cmdSend fmtj"""{"cmd":"addr-on","data":{"nid":<activeNid>,"addr":"<miningAddress>"}}"""
-      cmdSend fmtj"""{"cmd":"mining-on","data":{"nid":<activeNid>,"addr":"<miningAddress>"}}"""
+      elif recvType == "block":
+        let nid = recvData["nid"].getInt
+        let nidStr = $nid
+        blockDatas[nidStr] = recvData
+        if activeNid == nid:
+          appInst.redraw()
 
-  proc onOpen() =
-    connectionError = false
-    clearNotify("connect")
+      elif recvType == "addr":
+        let nid = recvData["nid"].getInt
+        let nidStr = $nid
+        addressDatas[nidStr] = recvData
+        appInst.redraw()
+        cmdSend fmtj"""{"cmd":"addrlog","data":{"nid":<nid>,"addr":"<miningAddress>","rev":1}}"""
 
-  proc onClose() =
-    if not pageUnload:
-      if not connectionError:
-        Notify.Error.show("Server connection failed.", "connect", true)
-        when defined(MINING_STOP_WHEN_DISCONNECTED):
-          setTimeout(proc() =
-            jq(".ui.mining.checkbox").checkbox("set unchecked")
-            miningActive = false
-            changeMiningWorker(0)
-            stopMiningDataUpdater()
-            appInst.redraw(), 1000)
-      connectionError = true
-      appInst.redraw()
+      elif recvType == "addrlog":
+        let nid = recvData["nid"].getInt
+        let nidStr = $nid
+        addrlogDatas[nidStr] = recvData
+        appInst.redraw()
 
-  stream.connect(WEBSOCKET_ENTRY_URL, WEBSOCKET_PROTOCOL, onOpen, onReady, onRecv, onClose)
+    onClose:
+      if not pageUnload:
+        if not connectionError:
+          Notify.Error.show("Server connection failed.", "connect", true)
+          when defined(MINING_STOP_WHEN_DISCONNECTED):
+            setTimeout(proc() =
+              jq(".ui.mining.checkbox").checkbox("set unchecked")
+              miningActive = false
+              changeMiningWorker(0)
+              stopMiningDataUpdater()
+              appInst.redraw(), 1000)
+        connectionError = true
+        appInst.redraw()
