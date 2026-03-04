@@ -1,5 +1,7 @@
 # Copyright (c) 2022 zenywallet
 
+import std/os
+
 proc index*(): string {.compileTime.} = """
 <!DOCTYPE html>
 <html>
@@ -84,7 +86,9 @@ a.ui.label:hover {
 </html>
 """
 
+const srcPath = currentSourcePath().parentDir()
+
 macro genarateHtml() =
-  writeFile("mining.html", index())
+  writeFile(srcPath / "mining.html", index())
 
 genarateHtml()
