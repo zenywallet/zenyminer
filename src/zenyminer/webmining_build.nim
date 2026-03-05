@@ -2,7 +2,6 @@
 
 import std/os
 import std/osproc
-import emsdkenv
 import zenyjs
 import zenyjs/exec
 import zenyjs/zenyjs_externs
