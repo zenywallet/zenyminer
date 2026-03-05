@@ -13,15 +13,14 @@ import zenyjs
 import zenyjs/jslib
 import zenyjs/arraylib
 import zenyjs/deoxy
+import zenyjs/address
+import zenyjs/config
+include karax / prelude
 
 const WEBSOCKET_PROTOCOL = "deoxy-0.1"
 const WEBSOCKET_ENTRY_URL = "wss://localhost:8000/ws"
 
-import zenyjs/config
 networksDefault()
-
-import zenyjs/address
-include karax / prelude
 
 
 {.experimental: "dotOperators".}
