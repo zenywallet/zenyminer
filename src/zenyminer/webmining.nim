@@ -1,16 +1,18 @@
 # Copyright (c) 2022 zenywallet
 
+import std/os
+import std/macros
+import std/json
+import std/strutils
+import std/strformat
+import std/times
+import std/jsffi except `.=`
+import std/asyncjs
+import std/base64
 import zenyjs
-import jsffi except `.=`
 import zenyjs/jslib
-import asyncjs
 import zenyjs/arraylib
-import json
-import strformat
-import times
 import zenyjs/deoxy
-
-import os, macros
 
 const WEBSOCKET_PROTOCOL = "deoxy-0.1"
 const WEBSOCKET_ENTRY_URL = "wss://localhost:8000/ws"
@@ -33,9 +35,6 @@ macro `.=`*(obj: JsObject, field, value: untyped): untyped =
 
 proc jq(selector: cstring): JsObject {.importcpp: "$$(#)".}
 template fmtj(pattern: static string): untyped = fmt(pattern, '<', '>')
-
-
-import strutils
 
 proc convCoin(val: string): string =
   if val.len > 8:
@@ -103,7 +102,6 @@ var connectionError = false
 var pageUnload = false
 var stream = new Deoxy
 
-import std/base64
 macro constMinerScripts(): untyped =
   var scriptNames = ["miner.js", "miner-simd128.js"]
   var bracket = nnkBracket.newTree()
