@@ -409,7 +409,6 @@ document.body.appendChild(vnodeToDom(miningPreventChangeNetwork))
 
 appInst = setInitializer(appMain, "mining", afterScript)
 appInst.surpressRedraws = false
-appInst.redraw()
 
 window.addEventListener("beforeunload", proc() = pageUnload = true)
 
