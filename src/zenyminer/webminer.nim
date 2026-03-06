@@ -61,7 +61,7 @@ proc miner(param: ptr MinerParam) {.thread.} =
         }, `header`, `nid`);
       """.}
 
-    inc(cast[var uint32](addr data[].header.nonce))
+    inc(data[].header.nonce)
     inc(minerCount)
     inc(skipCount)
     if skipCount mod skipMod == 0:
