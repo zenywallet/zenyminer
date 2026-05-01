@@ -61,6 +61,7 @@ type
 
 const WitnessCommitmentHeader = @[byte 0xaa, 0x21, 0xa9, 0xed]
 
+var minerThreadNum = MINER_THREAD_NUM
 var minerParams: ptr UncheckedArray[MinerParam]
 var minerDatas: ptr UncheckedArray[MinerData]
 var messageChannel: ptr Channel[Message]
@@ -107,8 +108,8 @@ proc doAbort*() =
   messageChannel[].send(msg)
 
 proc main*() =
-  minerParams = cast[ptr UncheckedArray[MinerParam]](allocShared0(sizeof(MinerParam) * MINER_THREAD_NUM))
-  minerDatas = cast[ptr UncheckedArray[MinerData]](allocShared0(sizeof(MinerData) * MINER_THREAD_NUM * 2))
+  minerParams = cast[ptr UncheckedArray[MinerParam]](allocShared0(sizeof(MinerParam) * minerThreadNum))
+  minerDatas = cast[ptr UncheckedArray[MinerData]](allocShared0(sizeof(MinerData) * minerThreadNum * 2))
   messageChannel = cast[ptr Channel[Message]](allocShared0(sizeof(Channel[Message])))
   messageChannel[].open()
 
@@ -122,8 +123,8 @@ proc main*() =
   var txCount, prevTxCount: uint32
   var prevHash, prevPrevHash: BlockHash
   var shiftCount: uint32
-  var statsCountStart = newSeq[uint32](MINER_THREAD_NUM)
-  var statsCountEnd = newSeq[uint32](MINER_THREAD_NUM)
+  var statsCountStart = newSeq[uint32](minerThreadNum)
+  var statsCountEnd = newSeq[uint32](minerThreadNum)
   var statsTimeStart, statsTimeEnd: float
   var statsFind: int
   var updateBlockTemplate = false
@@ -132,8 +133,8 @@ proc main*() =
   var invokerThread: Thread[void]
   createThread(invokerThread, updateBlockInvoker)
 
-  var minerThreads: array[MINER_THREAD_NUM, Thread[ptr MinerParam]]
-  for i in 0..<MINER_THREAD_NUM:
+  var minerThreads = newSeq[Thread[ptr MinerParam]](minerThreadNum)
+  for i in 0..<minerThreadNum:
     minerParams[][i].data = addr minerDatas[][i]
     minerParams[][i].abort = false
     createThread(minerThreads[i], miner, addr minerParams[][i])
@@ -241,13 +242,13 @@ proc main*() =
           inc(blockId)
           var nonceBase: uint32
           discard cryptSeed(cast[ptr UncheckedArray[byte]](addr nonceBase), 4)
-          var shift = MINER_THREAD_NUM * (shiftCount mod 2).int
-          for i in 0..<MINER_THREAD_NUM:
+          var shift = minerThreadNum * (shiftCount mod 2).int
+          for i in 0..<minerThreadNum:
             let pdata = addr minerDatas[][i + shift]
             pdata[].header = cast[ptr BlockHeaderObj](addr rawBlock[0])[]
             pdata[].target = cast[ptr array[32, byte]](addr target[0])[]
             pdata[].blockId = blockId
-            var nonce = nonceBase + (i * (uint32.high.int / MINER_THREAD_NUM).int).uint32
+            var nonce = nonceBase + (i * (uint32.high.int / minerThreadNum).int).uint32
             copyMem(addr pdata[].header.nonce, addr nonce, 4)
             minerParams[][i].data = pdata
           inc(shiftCount)
@@ -257,14 +258,14 @@ proc main*() =
           if curTime != prevCurTime:
             prevCurTime = curTime
             if shiftCount mod 2 == 0:
-              for i in 0..<MINER_THREAD_NUM:
+              for i in 0..<minerThreadNum:
                 let pdata = addr minerDatas[][i]
-                pdata[] = minerDatas[][i + MINER_THREAD_NUM]
+                pdata[] = minerDatas[][i + minerThreadNum]
                 copyMem(addr pdata[].header.time, addr curTime, 4)
                 minerParams[][i].data = pdata
             else:
-              for i in 0..<MINER_THREAD_NUM:
-                let pdata = addr minerDatas[][i + MINER_THREAD_NUM]
+              for i in 0..<minerThreadNum:
+                let pdata = addr minerDatas[][i + minerThreadNum]
                 pdata[] = minerDatas[][i]
                 copyMem(addr pdata[].header.time, addr curTime, 4)
                 minerParams[][i].data = pdata
@@ -272,12 +273,12 @@ proc main*() =
 
         template statsStart() {.dirty.} =
           statsTimeStart = epochTime()
-          for i in 0..<MINER_THREAD_NUM:
+          for i in 0..<minerThreadNum:
             statsCountStart[i] = minerParams[][i].data[].header.nonce
 
         template statsEnd() {.dirty.} =
           statsTimeEnd = epochTime()
-          for i in 0..<MINER_THREAD_NUM:
+          for i in 0..<minerThreadNum:
             statsCountEnd[i] = minerParams[][i].data[].header.nonce
 
         if statsTimeStart > 0:
@@ -286,7 +287,7 @@ proc main*() =
             var elapsed = statsTimeEnd - statsTimeStart
             var hashRateStr: string = fmt"Found:{statsFind} "
             var ths: float
-            for i in 0..<MINER_THREAD_NUM:
+            for i in 0..<minerThreadNum:
               var hs = (statsCountEnd[i] - statsCountStart[i]).float / elapsed
               ths = ths + hs
               hashRateStr.add(fmt"{i}:{hs:.3f} ")
@@ -301,7 +302,7 @@ proc main*() =
     echo e.name, ": ", e.msg
     doAbort()
 
-  for i in 0..<MINER_THREAD_NUM:
+  for i in 0..<minerThreadNum:
     minerParams[][i].abort = true
 
   minerThreads.joinThreads()
