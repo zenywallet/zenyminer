@@ -178,8 +178,7 @@ proc main*() =
             if t["txid"].getStr != t["hash"].getStr and t["data"].getStr[8..11].Hex.toBytes.toUint16BE == 1'u16:
               witnessFlag = true
               break
-          var txo = newTx()
-          var tx = txo.handle
+          var tx = newTx()
           tx.ver = 1'i32
           tx.flags = Flags(0'u8)
           tx.ins = @^[TxIn (tx: Hash(pad(32)), n: 0xffffffff'u32, sig: Sig(sig), sequence: 0xffffffff'u32)]
@@ -201,7 +200,7 @@ proc main*() =
           else:
             tx.outs = @^[TxOut (value: coinBaseValue, script: Script(myAddressScript))]
           tx.locktime = 0
-          var txid = txo.txid
+          var txid = tx.txid
 
           var txids: Array[Array[byte]]
           txids.add(cast[Array[byte]](txid))
@@ -219,7 +218,7 @@ proc main*() =
           var blk = new Block
           blk.header = header
           blk.txn = VarInt(1 + txCount)
-          blk.txs.add(txo)
+          blk.txs.add(tx)
 
           var txdatas: Array[byte]
           for t in transactions:
