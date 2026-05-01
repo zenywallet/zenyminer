@@ -72,11 +72,23 @@ proc miner(param: ptr MinerParam) {.thread.} =
     let data = param.data
     discard yespower_hash(cast[ptr UncheckedArray[byte]](addr data[].header), 80, yhash)
     block findBlock:
-      for j in countdown(31, 0):
-        if yhash[j] > data[].target[j]:
-          break findBlock
-        elif yhash[j] < data[].target[j]:
-          break
+      let yhash32 = cast[ptr array[8, uint32]](addr yhash)
+      let target32 = cast[ptr array[8, uint32]](addr data[].target)
+      when system.cpuEndian == bigEndian:
+        proc builtin_bswap32(a: uint32): uint32 {.importc: "__builtin_bswap32", nodecl, noSideEffect.}
+        for j in countdown(7, 0):
+          let y32 = builtin_bswap32(yhash32[j])
+          let t32 = builtin_bswap32(target32[j])
+          if y32 > t32:
+            break findBlock
+          elif y32 < t32:
+            break
+      else:
+        for j in countdown(7, 0):
+          if yhash32[j] > target32[j]:
+            break findBlock
+          elif yhash32[j] < target32[j]:
+            break
       messageChannel[].send(Message(cmd: MessageCmd.FindBlock, header: data[].header,
                                     blockId: data[].blockId, blockHash: yhash.toBytes.BlockHash))
     inc(data[].header.nonce)
